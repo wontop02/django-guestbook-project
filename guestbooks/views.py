@@ -35,13 +35,6 @@ def guestbook_list(request):
                 "data": guestbook_json_all
             })
         
-        except ValidationError:
-            return JsonResponse({
-                "status": 400,
-                "error": "BadRequest",
-                "message": "요청 형식이 잘못되었습니다."
-            }, status=400)
-        
         # 예상하지 못한 서버 에러
         except Exception as e:
             return JsonResponse({
@@ -54,6 +47,16 @@ def guestbook_list(request):
         try:
 
             body = json.loads(request.body.decode('utf-8'))
+
+            password = body.get("password", "")
+
+            # digit은 0~9 사이의 숫자. 숫자로만 이루어졌는지 확인
+            if not password.isdigit() or len(password) != 4:
+                return JsonResponse({
+                    "status": 400,
+                    "error": "BadRequest",
+                    "message": "비밀번호는 숫자 4자리여야 합니다."
+                }, status=400)
 
             allowed_fields = {"writer", "title", "content", "password"}
             extra_fields = set(body.keys()) - allowed_fields
@@ -103,8 +106,34 @@ def guestbook_list(request):
             }, status=500)
         
 
-@require_http_methods(["DELETE"])
+@require_http_methods(["GET", "DELETE"])
 def guestbook_detail(request, guestbook_id):
+
+    if request.method == "GET":
+        try:
+            guestbook = get_object_or_404(Guestbook, pk=guestbook_id)
+
+            guestbook_json = {
+                "id": guestbook.id,
+                "writer": guestbook.writer,
+                "title": guestbook.title,
+                "content": guestbook.content,
+                # "password": guestbook.password, # 보안 상 제외
+                "created": localtime(guestbook.created).isoformat() 
+            }
+
+            return JsonResponse({
+                "status": 200,
+                "message": "방명록 단일 조회 성공",
+                "data": guestbook_json
+            })
+        
+        except Exception as e:
+            return JsonResponse({
+                "status": 500,
+                "error": "InternalServerError",
+                "message": "서버 내부 오류 발생"
+            }, status=500)
 
     if request.method == "DELETE":
         try:
@@ -136,13 +165,6 @@ def guestbook_detail(request, guestbook_id):
                 "status": 200,
                 "message": "방명록 삭제 성공."
             }, status=200)
-        
-        except ValidationError:
-            return JsonResponse({
-                "status": 400,
-                "error": "BadRequest",
-                "message": "요청 형식이 잘못되었습니다."
-            }, status=400)
         
         except Exception as e:
             return JsonResponse({
