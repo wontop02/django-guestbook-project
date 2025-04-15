@@ -1,3 +1,4 @@
 from django.contrib import admin
+from guestbooks.models import Guestbook
 
-# Register your models here.
+admin.site.register(Guestbook)
