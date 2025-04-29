@@ -157,4 +157,6 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://localhost:5500",
     "http://127.0.0.1:5500",
+    "https://jihaeee.github.io/toyproject-GuestBook-FE/",
+    "https://toyproject-guest-book-fe.vercel.app/",
 ]
